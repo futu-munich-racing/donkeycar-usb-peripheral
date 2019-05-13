@@ -16,6 +16,7 @@
 // Struct for sensor data transmission over serial
 struct __attribute__((packed)) SensorMessage
 {
+  uint8_t magicBytes[2] = {0x55, 0xaa};
   uint16_t distance[3];
   uint16_t compass[3];
   uint16_t acceleration[3];
@@ -26,6 +27,7 @@ struct __attribute__((packed)) SensorMessage
 // Struct for control data transmission over serial
 struct __attribute__((packed)) ControlMessage
 {
+  uint8_t magicBytes[2] = {0x55, 0xaa};
   uint16_t steering;
   uint16_t acceleration;
   uint32_t checksum;

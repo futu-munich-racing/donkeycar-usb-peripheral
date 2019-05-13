@@ -48,7 +48,8 @@ with serial.Serial('/dev/ttyACM0', 115200) as comm:
         # inBuff.extend(comm.read_all())
         data = driver.receive(comm.read_all())
         if len(data) > 0:
-            print(data)
+            for packet in data:
+                hexdump(packet)
 
         # if len(inBuff) >= 30:
         #     while inBuff[0] != 0x55 and inBuff[1] != 0xaa:
