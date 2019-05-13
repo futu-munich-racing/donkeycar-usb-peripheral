@@ -14,9 +14,16 @@ public:
 
     void begin();
 
+    void update();
+
 private:
-    LSM6 _imu;
-    LIS3MDL _compass;
-    VL53L0X _tofDistance;
-    UltraSonicDistanceSensor _sonicDistance;
+    LSM6 _imuSensor;
+    LIS3MDL _compassSensor;
+    VL53L0X _tofDistanceSensor;
+    UltraSonicDistanceSensor _sonicDistanceSensor;
+
+    uint16_t _distance[3];
+    uint16_t _compass[3];
+    uint16_t _acceleration[3];
+    uint16_t _gyro[3];
 };

@@ -1,32 +1,67 @@
 #include "Sensors.h"
 
-Sensors::Sensors(uint8_t sonicTrigPin, uint8_t sonicEchoPin) : _sonicDistance(sonicTrigPin, sonicEchoPin)
+#include <Arduino.h>
+
+Sensors::Sensors(uint8_t sonicTrigPin, uint8_t sonicEchoPin) : _sonicDistanceSensor(sonicTrigPin, sonicEchoPin)
 {
 }
 
 void Sensors::begin()
 {
-
     Wire.begin();
 
-    if (!_compass.init())
+    if (!_compassSensor.init())
     {
-        Serial.println("Failed to detect and initialize magnetometer!");
+        // Failed to detect and initialize magnetometer!
         while (1)
-            ;
+        {
+            delay(50);
+            digitalToggle(PC13);
+        }
     }
 
-    _compass.enableDefault();
+    _compassSensor.enableDefault();
 
-    if (!_imu.init())
+    if (!_imuSensor.init())
     {
-        Serial.println("Failed to detect and initialize IMU!");
+        // Failed to detect and initialize IMU!
         while (1)
-            ;
+        {
+            delay(50);
+            digitalToggle(PC13);
+        }
     }
-    _imu.enableDefault();
+    _imuSensor.enableDefault();
 
-    _tofDistance.init();
-    _tofDistance.setTimeout(500);
-    _tofDistance.startContinuous(50);
+    if (!_tofDistanceSensor.init())
+    {
+        // Failed to detect and initialize ToF sensor!
+        while (1)
+        {
+            delay(50);
+            digitalToggle(PC13);
+        }
+    }
+    _tofDistanceSensor.setTimeout(500);
+    _tofDistanceSensor.startContinuous(50);
+}
+
+void Sensors::update()
+{
+    _distance[0] = (uint16_t)(_sonicDistanceSensor.measureDistanceCm() * 10.0);
+    _distance[1] = 0;
+    _distance[2] = _tofDistanceSensor.readRangeContinuousMillimeters();
+
+    _compassSensor.read();
+    _compass[0] = _compassSensor.m.x;
+    _compass[1] = _compassSensor.m.y;
+    _compass[2] = _compassSensor.m.z;
+
+    _imuSensor.read();
+    _acceleration[0] = _imuSensor.a.x;
+    _acceleration[1] = _imuSensor.a.y;
+    _acceleration[2] = _imuSensor.a.z;
+    _gyro[0] = _imuSensor.g.x;
+    _gyro[1] = _imuSensor.g.y;
+    _gyro[2] = _imuSensor.g.z;
 }
