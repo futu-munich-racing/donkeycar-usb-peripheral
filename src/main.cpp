@@ -8,7 +8,7 @@
 #include <LIS3MDL.h>
 #include <LSM6.h>
 #include <CRC32.h>
-#include <RingBuf.h>
+#include <PacketSerial.h>
 
 // Local libraries
 #include <ESC.h>
@@ -16,7 +16,6 @@
 // Struct for sensor data transmission over serial
 struct __attribute__((packed)) SensorMessage
 {
-  uint8_t magicBytes[2] = {0x55, 0xaa};
   uint16_t distance[3];
   uint16_t compass[3];
   uint16_t acceleration[3];
@@ -27,14 +26,14 @@ struct __attribute__((packed)) SensorMessage
 // Struct for control data transmission over serial
 struct __attribute__((packed)) ControlMessage
 {
-  uint8_t magicBytes[2] = {0x55, 0xaa};
   uint16_t steering;
   uint16_t acceleration;
   uint32_t checksum;
 };
 
 SensorMessage sensorMsg;
-ControlMessage controlMessage;
+
+SLIPPacketSerial comm;
 
 LSM6 imu;
 LIS3MDL mag;
@@ -45,59 +44,11 @@ ESC speedController(PB8);
 
 int counter = 0;
 
-RingBuf *inBuffer = RingBuf_new(sizeof(uint8_t), 64);
-
-enum ReceiverStates
+void onPacketReceived(const uint8_t *buffer, size_t size)
 {
-  ReceiverSyncA,
-  ReceiverSyncB,
-  ReceiverPayload,
-  ReceiverChecksum
-};
-
-ReceiverStates state = ReceiverSyncA;
-uint8_t payloadCounter = 0;
-uint8_t checksumCounter = 0;
-
-void transmitSensorData()
-{
-  Serial.write((const uint8_t *)&sensorMsg, sizeof(SensorMessage));
-}
-
-void receiveControlData()
-{
-  int tmp;
-  while (1)
+  if (size == sizeof(ControlMessage))
   {
-    tmp = Serial.read();
-    if (tmp == -1)
-      break;
-
-    switch (state)
-    {
-    case ReceiverSyncA:
-      payloadCounter = 0;
-      checksumCounter = 0;
-      if (tmp == 0x55)
-      {
-        state = ReceiverSyncB;
-      }
-      break;
-    case ReceiverSyncB:
-      if (tmp == 0xaa)
-      {
-        state = ReceiverPayload;
-      }
-      else
-      {
-        state = ReceiverSyncA;
-      }
-      break;
-    case ReceiverPayload:
-      break;
-    case ReceiverChecksum:
-      break;
-    }
+    ControlMessage *controlMessage = (ControlMessage *)buffer;
   }
 }
 
@@ -107,7 +58,9 @@ void setup()
 
   digitalWrite(PC13, LOW);
 
-  Serial.begin(115200);
+  comm.begin(115200);
+  comm.setPacketHandler(&onPacketReceived);
+  // Serial.begin(115200);
   Wire.begin();
 
   speedController.arm();
@@ -156,7 +109,7 @@ void loop()
 
   sensorMsg.checksum = CRC32::calculate((const uint8_t *)&sensorMsg, sizeof(SensorMessage) - 4);
 
-  transmitSensorData();
+  comm.send((const uint8_t *)&sensorMsg, sizeof(SensorMessage));
 
   delay(150);
   digitalToggle(PC13);
@@ -166,4 +119,6 @@ void loop()
   counter += 10;
   if (counter >= 200)
     counter = 0;
+
+  comm.update();
 }
