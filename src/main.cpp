@@ -60,7 +60,6 @@ void setup()
 
   comm.begin(115200);
   comm.setPacketHandler(&onPacketReceived);
-  // Serial.begin(115200);
   Wire.begin();
 
   speedController.arm();

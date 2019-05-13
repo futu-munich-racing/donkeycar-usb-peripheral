@@ -1,4 +1,5 @@
 import serial
+from sliplib import Driver as SLIPDriver
 from hexdump import hexdump
 from zlib import crc32
 
@@ -38,18 +39,24 @@ class SensorMessage:
         )
 
 
+driver = SLIPDriver()
+
 inBuff = bytearray()
 
 with serial.Serial('/dev/ttyACM0', 115200) as comm:
     while True:
-        inBuff.extend(comm.read_all())
-        if len(inBuff) >= 30:
-            while inBuff[0] != 0x55 and inBuff[1] != 0xaa:
-                del inBuff[0]
+        # inBuff.extend(comm.read_all())
+        data = driver.receive(comm.read_all())
+        if len(data) > 0:
+            print(data)
 
-            if len(inBuff) >= 30:
-                msg = SensorMessage(inBuff[0:30])
-                # msg = inBuff[0:30]
-                print(msg)
-                # hexdump(msg)
-                del inBuff[0:30]
+        # if len(inBuff) >= 30:
+        #     while inBuff[0] != 0x55 and inBuff[1] != 0xaa:
+        #         del inBuff[0]
+
+        #     if len(inBuff) >= 30:
+        #         msg = SensorMessage(inBuff[0:30])
+        #         # msg = inBuff[0:30]
+        #         print(msg)
+        #         # hexdump(msg)
+        #         del inBuff[0:30]
