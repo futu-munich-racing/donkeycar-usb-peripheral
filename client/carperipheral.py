@@ -56,16 +56,16 @@ counter = 0
 
 with serial.Serial('/dev/ttyACM0', 115200) as comm:
     while True:
-        # inBuff.extend(comm.read_all())
+        inBuff.extend(comm.read_all())
 
-        # if len(inBuff) >= 28:
-        #     data = driver.receive(inBuff)
-        #     if len(data) > 0:
-        #         for packet in data:
-        #             print(len(packet))
-        #             hexdump(packet)
-        #             msg = SensorMessage(packet)
-        #             print(msg)
+        if len(inBuff) >= 28:
+            data = driver.receive(inBuff)
+            if len(data) > 0:
+                for packet in data:
+                    print(len(packet))
+                    hexdump(packet)
+                    msg = SensorMessage(packet)
+                    print(msg)
 
         time.sleep(1)
         sendControlPacket(comm, counter, counter)
