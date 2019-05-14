@@ -18,4 +18,5 @@ private:
     uint8_t _steeringPin;
 
     ESC _speedCtrl;
+    bool _speedArmed{false};
 };

@@ -7,17 +7,18 @@ import time
 
 driver = SLIPDriver()
 
+
 def calcChecksum(data):
     return (crc32(data) & 0xffffffff).to_bytes(4, 'little')
 
 
 def sendControlPacket(comm, steering, speed):
+    print('Steering: {0}, Speed: {1}'.format(steering, speed))
     payload = bytearray(struct.pack('<HH', steering, speed))
     checksum = calcChecksum(payload)
     payload.extend(checksum)
     framed = driver.send(payload)
     hexdump(payload)
-    hexdump(framed)
     comm.write(framed)
 
 
@@ -66,8 +67,8 @@ with serial.Serial('/dev/ttyACM0', 115200) as comm:
         #             msg = SensorMessage(packet)
         #             print(msg)
 
-        time.sleep(2)
-        sendControlPacket(comm, 0, counter)
-        counter = counter +10
-        if counter == 180:
+        time.sleep(1)
+        sendControlPacket(comm, counter, counter)
+        counter = counter + 60
+        if counter > 180:
             counter = 0
