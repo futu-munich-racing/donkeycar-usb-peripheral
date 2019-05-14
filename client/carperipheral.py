@@ -2,31 +2,41 @@ import serial
 from sliplib import Driver as SLIPDriver
 from hexdump import hexdump
 from zlib import crc32
+import struct
+import time
+
+driver = SLIPDriver()
+
+def calcChecksum(data):
+    return (crc32(data) & 0xffffffff).to_bytes(4, 'little')
+
+
+def sendControlPacket(comm, steering, speed):
+    payload = bytearray(struct.pack('<HH', steering, speed))
+    checksum = calcChecksum(payload)
+    payload.extend(checksum)
+    framed = driver.send(payload)
+    hexdump(payload)
+    hexdump(framed)
+    comm.write(framed)
 
 
 class SensorMessage:
     def __init__(self, data):
-        payload = data[0:26]
-        checksum = data[26:30]
-        calculatedChecksum = (
-            crc32(payload) & 0xffffffff).to_bytes(4, 'little')
+        payload = data[0:24]
+        checksum = data[24:28]
+        calculatedChecksum = calcChecksum(payload)
 
         self.valid = checksum == calculatedChecksum
         if not self.valid:
             return
 
-        self.distance = self._convert(payload, 2)
-        self.compass = self._convert(payload, 8)
-        self.acceleration = self._convert(payload, 14)
-        self.gyro = self._convert(payload, 20)
-        
-        hexdump(payload[2:])
+        tmp = list(struct.unpack('<HHHHHHHHHHHH', payload))
 
-    def _convert(self, data, offset):
-        out=[]
-        for idx in range(3):
-            out.append(int.from_bytes(data[offset+(idx*2):offset+((idx+1)*2)], 'little'))
-        return out
+        self.distance = tmp[0:3]
+        self.compass = tmp[3:6]
+        self.acceleration = tmp[6:9]
+        self.gyro = tmp[9:12]
 
     def __str__(self):
         if not self.valid:
@@ -39,25 +49,25 @@ class SensorMessage:
         )
 
 
-driver = SLIPDriver()
-
 inBuff = bytearray()
+
+counter = 0
 
 with serial.Serial('/dev/ttyACM0', 115200) as comm:
     while True:
         # inBuff.extend(comm.read_all())
-        data = driver.receive(comm.read_all())
-        if len(data) > 0:
-            for packet in data:
-                hexdump(packet)
 
-        # if len(inBuff) >= 30:
-        #     while inBuff[0] != 0x55 and inBuff[1] != 0xaa:
-        #         del inBuff[0]
+        # if len(inBuff) >= 28:
+        #     data = driver.receive(inBuff)
+        #     if len(data) > 0:
+        #         for packet in data:
+        #             print(len(packet))
+        #             hexdump(packet)
+        #             msg = SensorMessage(packet)
+        #             print(msg)
 
-        #     if len(inBuff) >= 30:
-        #         msg = SensorMessage(inBuff[0:30])
-        #         # msg = inBuff[0:30]
-        #         print(msg)
-        #         # hexdump(msg)
-        #         del inBuff[0:30]
+        time.sleep(2)
+        sendControlPacket(comm, 0, counter)
+        counter = counter +10
+        if counter == 180:
+            counter = 0
