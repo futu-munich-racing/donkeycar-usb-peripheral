@@ -4,11 +4,9 @@
 #include "Control.h"
 #include "Sensors.h"
 
-int counter = 0;
-
-Protocol protocol;
 Control control(PB9, PB8);
-Sensors sensors(PB12, PB13);
+Protocol protocol(control);
+Sensors sensors(PB12, PB13, protocol);
 
 void setup()
 {
@@ -27,6 +25,4 @@ void loop()
 
     delay(150);
     digitalToggle(PC13);
-    
-
 }
