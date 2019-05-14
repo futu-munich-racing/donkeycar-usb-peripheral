@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-Sensors::Sensors(uint8_t sonicTrigPin, uint8_t sonicEchoPin) : _sonicDistanceSensor(sonicTrigPin, sonicEchoPin)
+Sensors::Sensors(uint8_t sonicTrigPin, uint8_t sonicEchoPin, Protocol &protocol) : _protocol(protocol), _sonicDistanceSensor(sonicTrigPin, sonicEchoPin)
 {
 }
 
@@ -64,4 +64,6 @@ void Sensors::update()
     _gyro[0] = _imuSensor.g.x;
     _gyro[1] = _imuSensor.g.y;
     _gyro[2] = _imuSensor.g.z;
+
+    _protocol.send(_distance, _compass, _acceleration, _gyro);
 }

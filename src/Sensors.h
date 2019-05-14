@@ -7,16 +7,20 @@
 #include <LIS3MDL.h>
 #include <LSM6.h>
 
+#include "Protocol.h"
+
 class Sensors
 {
 public:
-    Sensors(uint8_t sonicTrigPin, uint8_t sonicEchoPin);
+    Sensors(uint8_t sonicTrigPin, uint8_t sonicEchoPin, Protocol &protocol);
 
     void begin();
 
     void update();
 
 private:
+    Protocol &_protocol;
+
     LSM6 _imuSensor;
     LIS3MDL _compassSensor;
     VL53L0X _tofDistanceSensor;
