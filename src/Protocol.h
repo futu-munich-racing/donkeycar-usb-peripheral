@@ -1,11 +1,11 @@
 #pragma once
 
 #include <PacketSerial.h>
+#include "Control.h"
 
 // Struct for sensor data transmission over serial
 struct __attribute__((packed)) SensorPacket
 {
-    uint8_t magicBytes[2] = {0x55, 0xaa};
     uint16_t distance[3];
     uint16_t compass[3];
     uint16_t acceleration[3];
@@ -16,16 +16,15 @@ struct __attribute__((packed)) SensorPacket
 // Struct for control data transmission over serial
 struct __attribute__((packed)) ControlPacket
 {
-    uint8_t magicBytes[2] = {0x55, 0xaa};
     uint16_t steering;
-    uint16_t acceleration;
+    uint16_t speed;
     uint32_t checksum;
 };
 
 class Protocol
 {
 public:
-    Protocol();
+    Protocol(Control &control);
 
     void begin(int serialBaud);
     void update();
@@ -40,4 +39,5 @@ private:
 
     SensorPacket _sensorPacketBuffer;
     ControlPacket _controlPacketBuffer;
+    Control &_control;
 };
