@@ -75,19 +75,15 @@ class Serial(asyncio.Protocol):
 
 
 class Protcol:
-    def __init__(self, device='/dev/ttyACM0', baud=115200):
+    def __init__(self, device='/dev/ttyACM0', baud=115200, packetHandler=lambda:None):
         self._loop = asyncio.get_event_loop()
-        self._serialProtocol = Serial(self.packetHandler)
+        self._serialProtocol = Serial(packetHandler)
         self._serialConnection = serial_asyncio.create_serial_connection(
             self._loop, lambda: self._serialProtocol, device, baudrate=baud)
         asyncio.ensure_future(self._serialConnection)
 
     def start(self):
         self._loop.run_forever()
-
-    def packetHandler(self, packet):
-        # print(packet)
-        pass
 
     def sendControlPacket(self, steering, speed):
         print('Steering: {0}, Speed: {1}'.format(steering, speed))

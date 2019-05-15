@@ -28,7 +28,11 @@ class RepeatedTimer(object):
         self.is_running = False
 
 
-proto = Protcol()
+
+def packetHandler(packet):
+    print(packet)
+
+proto = Protcol(packetHandler=packetHandler)
 
 counter = 0
 def send():
