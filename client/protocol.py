@@ -71,11 +71,12 @@ class Serial(asyncio.Protocol):
                 for rawPacket in data:
                     # hexdump(rawPacket)
                     packet = SensorPacket(rawPacket)
-                    self._packetHandler(packet)
+                    if packet.valid:
+                        self._packetHandler(packet)
 
 
 class Protcol:
-    def __init__(self, device='/dev/ttyACM0', baud=115200, packetHandler=lambda:None):
+    def __init__(self, device='/dev/ttyACM0', baud=115200, packetHandler=lambda: None):
         self._loop = asyncio.get_event_loop()
         self._serialProtocol = Serial(packetHandler)
         self._serialConnection = serial_asyncio.create_serial_connection(
@@ -90,4 +91,5 @@ class Protcol:
         payload = bytearray(struct.pack('<HH', steering, speed))
         checksum = calcChecksum(payload)
         payload.extend(checksum)
-        self._loop.create_task(self._serialProtocol.send(slipDriver.send(payload)))
+        self._loop.create_task(
+            self._serialProtocol.send(slipDriver.send(payload)))
