@@ -32,14 +32,14 @@ class RepeatedTimer(object):
 def packetHandler(packet):
     print(packet)
 
-proto = Protcol(packetHandler=packetHandler)
+proto = Protcol(device='/dev/ttyACM0',packetHandler=packetHandler)
 
 counter = 0
 def send():
     global counter
     proto.sendControlPacket(counter, counter)
     counter = counter + 30
-    if counter >= 180:
+    if counter > 180:
         counter = 0
 
 

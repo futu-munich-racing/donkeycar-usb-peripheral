@@ -6,12 +6,14 @@
 
 Control control(PB9, PB8);
 Protocol protocol(control);
-Sensors sensors(PB12, PB13, protocol);
+Sensors sensors(PB12, PB13, PB14, PB15, protocol);
 
 void setup()
 {
     pinMode(PC13, OUTPUT);
     digitalWrite(PC13, LOW);
+
+    Wire.begin();
 
     protocol.begin(115200);
     control.begin();
@@ -23,6 +25,6 @@ void loop()
     sensors.update();
     protocol.update();
 
-    delay(150);
-    digitalToggle(PC13);
+    delay(500);
+    // digitalToggle(PC13);
 }

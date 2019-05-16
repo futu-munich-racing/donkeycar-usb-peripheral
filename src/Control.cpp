@@ -22,5 +22,4 @@ void Control::setSpeed(uint16_t speed)
 void Control::setSteering(uint16_t angle)
 {
     _steeringCtrl.write(angle);
-    _steeringCtrl.
 }
