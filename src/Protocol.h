@@ -7,7 +7,7 @@
 struct __attribute__((packed)) SensorPacket
 {
     uint16_t distance[3];
-    uint16_t compass[3];
+    uint16_t magneto[3];
     uint16_t acceleration[3];
     uint16_t gyro[3];
     uint32_t checksum;
@@ -29,7 +29,7 @@ public:
     void begin(int serialBaud);
     void update();
 
-    void send(uint16_t distance[3], uint16_t compass[3], uint16_t acceleration[3], uint16_t gyro[3]);
+    void send(uint16_t distance[3], uint16_t magneto[3], uint16_t acceleration[3], uint16_t gyro[3]);
 
 protected:
     void receive(const uint8_t *buffer, size_t size);

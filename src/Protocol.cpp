@@ -19,10 +19,10 @@ void Protocol::begin(int serialBaud)
     });
 }
 
-void Protocol::send(uint16_t distance[3], uint16_t compass[3], uint16_t acceleration[3], uint16_t gyro[3])
+void Protocol::send(uint16_t distance[3], uint16_t magneto[3], uint16_t acceleration[3], uint16_t gyro[3])
 {
     memcpy(_sensorPacketBuffer.distance, distance, 3 * sizeof(uint16_t));
-    memcpy(_sensorPacketBuffer.compass, compass, 3 * sizeof(uint16_t));
+    memcpy(_sensorPacketBuffer.magneto, magneto, 3 * sizeof(uint16_t));
     memcpy(_sensorPacketBuffer.acceleration, acceleration, 3 * sizeof(uint16_t));
     memcpy(_sensorPacketBuffer.gyro, gyro, 3 * sizeof(uint16_t));
     _sensorPacketBuffer.checksum = CRC32::calculate((const uint8_t *)&_sensorPacketBuffer, sizeof(SensorPacket) - 4);
