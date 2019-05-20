@@ -2,7 +2,14 @@
 
 #include <Arduino.h>
 
-Sensors::Sensors(uint8_t sonicTrigPin, uint8_t sonicEchoPin, Protocol &protocol) : _protocol(protocol), _sonicDistanceSensor(sonicTrigPin, sonicEchoPin)
+Sensors::Sensors(
+    uint8_t sonicTrigPin1,
+    uint8_t sonicEchoPin1,
+    uint8_t sonicTrigPin2,
+    uint8_t sonicEchoPin2,
+    Protocol &protocol) : _protocol(protocol),
+                          _sonicDistanceSensor1(sonicTrigPin1, sonicEchoPin1),
+                          _sonicDistanceSensor2(sonicTrigPin2, sonicEchoPin2)
 {
 }
 
@@ -10,7 +17,7 @@ void Sensors::begin()
 {
     Wire.begin();
 
-    if (!_compassSensor.init())
+    if (!_magnetoSensor.init())
     {
         // Failed to detect and initialize magnetometer!
         while (1)
@@ -20,7 +27,7 @@ void Sensors::begin()
         }
     }
 
-    _compassSensor.enableDefault();
+    _magnetoSensor.enableDefault();
 
     if (!_imuSensor.init())
     {
@@ -48,14 +55,14 @@ void Sensors::begin()
 
 void Sensors::update()
 {
-    _distance[0] = (uint16_t)(_sonicDistanceSensor.measureDistanceCm() * 10.0);
-    _distance[1] = 0;
+    _distance[0] = (uint16_t)(_sonicDistanceSensor1.measureDistanceCm() * 10.0);
+    _distance[1] = (uint16_t)(_sonicDistanceSensor2.measureDistanceCm() * 10.0);
     _distance[2] = _tofDistanceSensor.readRangeContinuousMillimeters();
 
-    _compassSensor.read();
-    _compass[0] = _compassSensor.m.x;
-    _compass[1] = _compassSensor.m.y;
-    _compass[2] = _compassSensor.m.z;
+    _magnetoSensor.read();
+    _magneto[0] = _magnetoSensor.m.x;
+    _magneto[1] = _magnetoSensor.m.y;
+    _magneto[2] = _magnetoSensor.m.z;
 
     _imuSensor.read();
     _acceleration[0] = _imuSensor.a.x;
@@ -65,5 +72,5 @@ void Sensors::update()
     _gyro[1] = _imuSensor.g.y;
     _gyro[2] = _imuSensor.g.z;
 
-    _protocol.send(_distance, _compass, _acceleration, _gyro);
+    _protocol.send(_distance, _magneto, _acceleration, _gyro);
 }
