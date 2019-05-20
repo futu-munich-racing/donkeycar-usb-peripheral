@@ -6,7 +6,7 @@
 
 Control control(PB9, PB8);
 Protocol protocol(control);
-Sensors sensors(PB12, PB13, protocol);
+Sensors sensors(PB12, PB13, PB14, PB15, protocol);
 
 void setup()
 {
