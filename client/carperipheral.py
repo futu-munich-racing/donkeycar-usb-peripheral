@@ -33,7 +33,7 @@ def packetHandler(packet):
     # print(packet)
     pass
 
-proto = Protocol(packetHandler=packetHandler)
+proto = Protocol(device='/dev/ttyAMA0',packetHandler=packetHandler)
 
 counter = 1000
 def send():
