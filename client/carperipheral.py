@@ -1,4 +1,4 @@
-from protocol import Protcol
+from protocol import Protocol
 from threading import Timer
 
 
@@ -30,17 +30,20 @@ class RepeatedTimer(object):
 
 
 def packetHandler(packet):
-    print(packet)
+    # print(packet)
+    pass
 
-proto = Protcol(packetHandler=packetHandler)
+proto = Protocol(packetHandler=packetHandler)
 
-counter = 0
+counter = 1000
 def send():
     global counter
-    proto.sendControlPacket(counter, counter)
-    counter = counter + 30
-    if counter >= 180:
-        counter = 0
+    proto.setThrottle(counter)
+    # proto.setSteering(counter)
+    # proto.sendControlPacket(counter, counter)
+    counter = counter + 10
+    if counter == 2000:
+        counter = 1000
 
 
 rt = RepeatedTimer(1, send)
