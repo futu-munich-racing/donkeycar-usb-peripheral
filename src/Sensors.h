@@ -12,6 +12,9 @@
 class Sensors
 {
 public:
+    static const int SampleRate = 40;
+    static const int SampleInterval = 1000/SampleRate;
+
     Sensors(uint8_t sonicTrigPin1, uint8_t sonicEchoPin1, uint8_t sonicTrigPin2, uint8_t sonicEchoPin2, Protocol &protocol);
 
     void begin();
@@ -31,4 +34,7 @@ private:
     uint16_t _magneto[3];
     uint16_t _acceleration[3];
     uint16_t _gyro[3];
+
+    uint32_t _lastSentMsg{0};
+    uint32_t _lastDistMeasurement{0};
 };

@@ -11,6 +11,10 @@ Sensors::Sensors(
                           _sonicDistanceSensor1(sonicTrigPin1, sonicEchoPin1),
                           _sonicDistanceSensor2(sonicTrigPin2, sonicEchoPin2)
 {
+    memset(_distance, 0, sizeof(uint16_t) * 3);
+    memset(_magneto, 0, sizeof(uint16_t) * 3);
+    memset(_acceleration, 0, sizeof(uint16_t) * 3);
+    memset(_gyro, 0, sizeof(uint16_t) * 3);
 }
 
 void Sensors::begin()
@@ -49,28 +53,38 @@ void Sensors::begin()
             digitalToggle(PC13);
         }
     }
-    _tofDistanceSensor.setTimeout(500);
-    _tofDistanceSensor.startContinuous(50);
+    _tofDistanceSensor.startContinuous();
 }
 
 void Sensors::update()
 {
-    _distance[0] = (uint16_t)(_sonicDistanceSensor1.measureDistanceCm() * 10.0);
-    _distance[1] = (uint16_t)(_sonicDistanceSensor2.measureDistanceCm() * 10.0);
-    _distance[2] = _tofDistanceSensor.readRangeContinuousMillimeters();
 
-    _magnetoSensor.read();
-    _magneto[0] = _magnetoSensor.m.x;
-    _magneto[1] = _magnetoSensor.m.y;
-    _magneto[2] = _magnetoSensor.m.z;
+    if (millis() > _lastDistMeasurement + 100)
+    {
+        _distance[0] = (uint16_t)(_sonicDistanceSensor1.measureDistanceCm() * 10.0);
+        _distance[1] = (uint16_t)(_sonicDistanceSensor2.measureDistanceCm() * 10.0);
+        _distance[2] = _tofDistanceSensor.readRangeContinuousMillimeters();
+        _lastDistMeasurement = millis();
+    }
 
-    _imuSensor.read();
-    _acceleration[0] = _imuSensor.a.x;
-    _acceleration[1] = _imuSensor.a.y;
-    _acceleration[2] = _imuSensor.a.z;
-    _gyro[0] = _imuSensor.g.x;
-    _gyro[1] = _imuSensor.g.y;
-    _gyro[2] = _imuSensor.g.z;
+    if (millis() > _lastSentMsg + SampleInterval)
+    {
 
-    _protocol.send(_distance, _magneto, _acceleration, _gyro);
+        _magnetoSensor.read();
+        _magneto[0] = _magnetoSensor.m.x;
+        _magneto[1] = _magnetoSensor.m.y;
+        _magneto[2] = _magnetoSensor.m.z;
+
+        _imuSensor.read();
+        _acceleration[0] = _imuSensor.a.x;
+        _acceleration[1] = _imuSensor.a.y;
+        _acceleration[2] = _imuSensor.a.z;
+        _gyro[0] = _imuSensor.g.x;
+        _gyro[1] = _imuSensor.g.y;
+        _gyro[2] = _imuSensor.g.z;
+
+
+        _protocol.send(_distance, _magneto, _acceleration, _gyro);
+        _lastSentMsg = millis();
+    }
 }
