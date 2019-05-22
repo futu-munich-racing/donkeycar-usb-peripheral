@@ -32,8 +32,12 @@ void Protocol::send(uint16_t distance[3], uint16_t magneto[3], uint16_t accelera
 void Protocol::receive(const uint8_t *buffer, size_t size)
 {
     ControlPacket *packet = (ControlPacket *)buffer;
-    _control.setSpeed(packet->speed);
-    _control.setSteering(packet->steering);
+    uint32_t checksum = CRC32::calculate((const uint8_t *)&buffer, sizeof(ControlPacket) - 4);
+    if (packet->checksum == checksum)
+    {
+        _control.setSpeed(packet->speed);
+        _control.setSteering(packet->steering);
+    }
 }
 
 void Protocol::update()
