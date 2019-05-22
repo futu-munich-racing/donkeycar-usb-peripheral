@@ -7,15 +7,16 @@ Control::Control(uint8_t steeringPin, uint8_t speedPin) : _steeringPin(steeringP
 void Control::begin()
 {
     _steeringCtrl.attach(_steeringPin);
+    _speedCtrl.arm();
+    _speedCtrl.speed(1500);
 }
 
 void Control::setSpeed(uint16_t speed)
 {
-    if (!_speedArmed)
-    {
-        _speedCtrl.arm();
-        _speedArmed = true;
-    }
+    // if (!_speedArmed)
+    // {
+    //     _speedArmed = true;
+    // }
     _speedCtrl.speed(speed);
 }
 
