@@ -12,44 +12,32 @@ Sensors::Sensors(
                           _sonicDistanceSensor2(sonicTrigPin2, sonicEchoPin2)
 {
     memset(_distance, 0, sizeof(uint16_t) * 3);
-    memset(_magneto, 0, sizeof(uint16_t) * 3);
+    memset(_orientation, 0, sizeof(uint16_t) * 3);
+    memset(_rotation, 0, sizeof(uint16_t) * 3);
     memset(_acceleration, 0, sizeof(uint16_t) * 3);
-    memset(_gyro, 0, sizeof(uint16_t) * 3);
+    memset(_calibration, 0, sizeof(uint8_t) * 4);
 }
 
 void Sensors::begin()
 {
     Wire.begin();
 
-    if (!_magnetoSensor.init())
-    {
-        // Failed to detect and initialize magnetometer!
-        while (1)
-        {
-            delay(50);
-            digitalToggle(PC13);
-        }
-    }
-
-    _magnetoSensor.enableDefault();
-
-    if (!_imuSensor.init())
+    if (!_imuSensor.begin())
     {
         // Failed to detect and initialize IMU!
         while (1)
         {
-            delay(50);
+            delay(100);
             digitalToggle(PC13);
         }
     }
-    _imuSensor.enableDefault();
 
     if (!_tofDistanceSensor.init())
     {
         // Failed to detect and initialize ToF sensor!
         while (1)
         {
-            delay(50);
+            delay(100);
             digitalToggle(PC13);
         }
     }
@@ -61,30 +49,35 @@ void Sensors::update()
 
     if (millis() > _lastDistMeasurement + 100)
     {
-        _distance[0] = (uint16_t)(_sonicDistanceSensor1.measureDistanceCm() * 10.0);
-        _distance[1] = (uint16_t)(_sonicDistanceSensor2.measureDistanceCm() * 10.0);
+        // _distance[0] = (uint16_t)(_sonicDistanceSensor1.measureDistanceCm() * 10.0);
+        // _distance[1] = (uint16_t)(_sonicDistanceSensor2.measureDistanceCm() * 10.0);
         _distance[2] = _tofDistanceSensor.readRangeContinuousMillimeters();
         _lastDistMeasurement = millis();
     }
 
     if (millis() > _lastSentMsg + SampleInterval)
     {
+        sensors_event_t orientationData, angVelocityData, linearAccelData;
 
-        _magnetoSensor.read();
-        _magneto[0] = _magnetoSensor.m.x;
-        _magneto[1] = _magnetoSensor.m.y;
-        _magneto[2] = _magnetoSensor.m.z;
+        _imuSensor.getCalibration(&_calibration[0], &_calibration[1], &_calibration[2], &_calibration[3]);
+        
+        _imuSensor.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
+        _imuSensor.getEvent(&angVelocityData, Adafruit_BNO055::VECTOR_GYROSCOPE);
+        _imuSensor.getEvent(&linearAccelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
 
-        _imuSensor.read();
-        _acceleration[0] = _imuSensor.a.x;
-        _acceleration[1] = _imuSensor.a.y;
-        _acceleration[2] = _imuSensor.a.z;
-        _gyro[0] = _imuSensor.g.x;
-        _gyro[1] = _imuSensor.g.y;
-        _gyro[2] = _imuSensor.g.z;
+        _orientation[0] = (uint16_t)(orientationData.orientation.roll * 100.0);
+        _orientation[1] = (uint16_t)(orientationData.orientation.pitch * 100.0);
+        _orientation[2] = (uint16_t)(orientationData.orientation.heading * 100.0);
 
+        _acceleration[0] = (uint16_t)(linearAccelData.acceleration.x * 100.0);
+        _acceleration[1] = (uint16_t)(linearAccelData.acceleration.y * 100.0);
+        _acceleration[2] = (uint16_t)(linearAccelData.acceleration.z * 100.0);
 
-        _protocol.send(_distance, _magneto, _acceleration, _gyro);
+        _rotation[0] = (uint16_t)(angVelocityData.gyro.x * 100.0);
+        _rotation[1] = (uint16_t)(angVelocityData.gyro.y * 100.0);
+        _rotation[2] = (uint16_t)(angVelocityData.gyro.z * 100.0);
+
+        _protocol.send(_distance, _orientation, _acceleration, _rotation, _calibration);
         _lastSentMsg = millis();
     }
 }
